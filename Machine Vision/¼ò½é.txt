@@ -1,0 +1,18 @@
+Machine Vision Toolbox for MATLAB (Release 2)
+Download the Machine Vision Toolbox for Matlab
+
+Release 2 includes 
+
+epipolar functions, fundamental matrix and homographies 
+Hough transforms 
+support for Firewire cameras 
+many generall improvements 
+
+
+Introduction
+The Machine Vision Toolbox (MVT) provides many functions that are useful in machine vision and vision-based control. It is a somewhat eclectic collection reflecting the author's personal interest in areas of photometry, photogrammetry, colorimetry. It includes over 90 functions spanning operations such as image file reading and writing, acquisition, display, filtering, blob, point and line feature extraction, mathematical morphology, homographies, visual Jacobians, camera calibration and color space conversion. The Toolbox, combined with Matlab and a modern workstation computer, is a useful and convenient environment for investigation of machine vision algorithms. For modest image sizes the processing rate can be sufficiently ``real-time'' to allow for closed-loop control. Focus of attention methods such as dynamic windowing (not provided) can be used to increase the processing rate.
+
+This toolbox is not a clone of the Mathwork's own Image Processing Toolbox although there are many functions in common. This toolbox predates IPT by many years, is open-source, contains many functions that are useful for image feature extraction and control. It was developed under Unix and Linux systems and some functions rely on tools and utilities that exist only in that environment.
+
+IEEEÎÄÕÂµØÖ·£º
+P. Corke. Machine vision toolbox. IEEE Robotics and Automation Magazine, 12(4):16¨C25, Nov. 2005. [PDF]
