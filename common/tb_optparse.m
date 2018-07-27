@@ -10,20 +10,23 @@
 % The software pattern is:
 %
 %       function(a, b, c, varargin)
-%       opt.foo = false;
-%       opt.bar = true;
-%       opt.blah = [];
-%       opt.choose = {'this', 'that', 'other'};
-%       opt.select = {'#no', '#yes'};
-%       opt = tb_optparse(opt, varargin);
+%          opt.foo = false;
+%          opt.bar = true;
+%          opt.blah = [];
+%          opt.stuff = {};
+%          opt.choose = {'this', 'that', 'other'};
+%          opt.select = {'#no', '#yes'};
+%          opt = tb_optparse(opt, varargin);
 %
 % Optional arguments to the function behave as follows:
-%   'foo'           sets opt.foo := true
-%   'nobar'         sets opt.foo := false
-%   'blah', 3       sets opt.blah := 3
-%   'blah',{x,y}    sets opt.blah := {x,y}
-%   'that'          sets opt.choose := 'that'
-%   'yes'           sets opt.select := (the second element)
+%   'foo'              sets opt.foo := true
+%   'nobar'            sets opt.foo := false
+%   'blah', 3          sets opt.blah := 3
+%   'blah',{x,y}       sets opt.blah := {x,y}
+%   'that'             sets opt.choose := 'that'
+%   'yes'              sets opt.select := (the second element)
+%   'stuff', 5         sets opt.stuff to {5}
+%   'stuff', {'k',3}   sets opt.stuff to {'k',3}
 %
 % and can be given in any combination.
 %
@@ -66,12 +69,15 @@
 % unmatched option looks like a MATLAB LineSpec (eg. 'r:') it is placed in LS rather
 % than in ARGS.
 %
+% [OBJOUT,ARGS,LS] = TB_OPTPARSE(OPT, ARGLIST, OBJ) as above but properties
+% of OBJ with matching names in OPT are set.
 
 
 % Ryan Steindl based on Robotics Toolbox for MATLAB (v6 and v9)
 %
 
-% Copyright (C) 1993-2014, by Peter I. Corke
+
+% Copyright (C) 1993-2017, by Peter I. Corke
 %
 % This file is part of The Robotics Toolbox for MATLAB (RTB).
 % 
@@ -92,12 +98,16 @@
 
 % Modifications by Joern Malzahn to support classes in addition to structs
 
-function [opt,others,ls] = tb_optparse(in, argv)
+function [opt,others,ls] = tb_optparse(in, argv, cls)
 
     if nargin == 1
         argv = {};
     end
 
+    if nargin < 3
+        cls = [];
+    end
+    
     if ~iscell(argv)
         error('RTB:tboptparse:badargs', 'input must be a cell array');
     end
@@ -179,6 +189,13 @@ function [opt,others,ls] = tb_optparse(in, argv)
                         % otherwise grab its value from the next arg
                         try
                             opt.(option) = argv{argc+1};
+                            if iscell(in.(option)) && isempty(in.(option))
+                                % input was an empty cell array
+                                if ~iscell(opt.(option))
+                                    % make it a cell
+                                    opt.(option) = cell( opt.(option) );
+                                end
+                            end
                         catch me
                             if strcmp(me.identifier, 'MATLAB:badsubscript')
                                 error('RTB:tboptparse:badargs', 'too few arguments provided for option: [%s]', option);
@@ -256,14 +273,14 @@ function [opt,others,ls] = tb_optparse(in, argv)
     % copy choices into the opt structure
     if ~isempty(choices)
         for field=fieldnames(choices)'
-           opt.(field{1}) = choices.(field{1});
+            opt.(field{1}) = choices.(field{1});
         end
     end
-
+ 
     % if enumerator value not assigned, set the default value
     if ~isempty(in)
         for field=fieldnames(in)'
-            if iscell(in.(field{1})) && iscell(opt.(field{1}))
+            if iscell(in.(field{1})) && ~isempty(in.(field{1})) && iscell(opt.(field{1}))
                 val = opt.(field{1});
                 if isempty(val{1})
                     opt.(field{1}) = val{1};
@@ -275,6 +292,8 @@ function [opt,others,ls] = tb_optparse(in, argv)
             end
         end
     end
+    
+    % opt is now complete
                         
     if showopt
         fprintf('Options:\n');
@@ -282,11 +301,28 @@ function [opt,others,ls] = tb_optparse(in, argv)
         arglist
     end
 
+    % however if a class was passed as a second argument, set its properties
+    % according to the fields of opt
+    if ~isempty(cls)
+
+        for field=fieldnames(opt)'
+            if isprop(cls, field{1})
+                cls.(field{1}) = opt.(field{1});
+            end
+        end
+        
+        opt = cls;
+    end
+    
     if nargout == 3
         % check to see if there is a valid linespec floating about in the
         % unused arguments
+        ls = [];
         for i=1:length(arglist)
             s = arglist{i};
+            if ~ischar(s)
+                continue;
+            end
             % get color
             [b,e] = regexp(s, '[rgbcmywk]');
             s2 = s(b:e);
@@ -303,15 +339,18 @@ function [opt,others,ls] = tb_optparse(in, argv)
             s(b:e) = [];
             
             % found one
-            if isempty(s)
+            if length(s) == 0
                 ls = arglist{i};
                 arglist(i) = [];
-                others = arglist;
                 break;
             end
         end
-        ls = [];
         others = arglist;
+        if isempty(ls)
+            ls = {};
+        else
+            ls = {ls};
+        end
     elseif nargout == 2
         others = arglist;
     end

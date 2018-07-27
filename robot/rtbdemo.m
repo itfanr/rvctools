@@ -1,13 +1,20 @@
 %RTBDEMO 	Robot toolbox demonstrations
 %
 % rtbdemo displays a menu of toolbox demonstration scripts that illustrate:
-%   - homogeneous transformations
-%   - trajectories
-%   - forward kinematics
-%   - inverse kinematics
-%   - robot animation
-%   - inverse dynamics
-%   - forward dynamics
+%   - fundamental datatypes
+%     - rotation and homogeneous transformation matrices
+%     - quaternions
+%     - trajectories
+%   - serial link manipulator arms
+%     - forward and inverse kinematics
+%     - robot animation
+%     - forward and inverse dynamics
+%   - mobile robots
+%     - kinematic models and control
+%     - path planning (D*, PRM, Lattice, RRT)
+%     - localization (EKF, particle filter)
+%     - SLAM (EKF, pose graph)
+%     - quadrotor control
 %
 % rtbdemo(T) as above but waits for T seconds after every statement, no
 % need to push the enter key periodically.
@@ -15,9 +22,12 @@
 % Notes::
 % - By default the scripts require the user to periodically hit <Enter> in
 %   order to move through the explanation.
+% - Some demos require Simulink
+
+% TODO: triple angle, pose graph slam example, lattice planner
 
 
-% Copyright (C) 1993-2015, by Peter I. Corke
+% Copyright (C) 1993-2017, by Peter I. Corke
 %
 % This file is part of The Robotics Toolbox for MATLAB (RTB).
 % 
@@ -83,7 +93,6 @@ function rtbdemo(timeout)
         'Inverse dynamics', 'idyn';
         'Forward dynamics', 'fdyn';
         'Symbolic', 'symbolic';
-        'Code generation', 'codegen';
         'Driving to a pose', 'drivepose';
         'Quadrotor flying', 'quadrotor';
         'Braitenberg vehicle', 'braitnav';
@@ -92,6 +101,7 @@ function rtbdemo(timeout)
         'PRM navigation', 'prmnav';
         'SLAM demo', 'slam';
         'Particle filter localization', 'particlefilt';
+        'Pose graph SLAM', 'pgslam';
         };
     
     % display the GUI panel
@@ -108,11 +118,20 @@ function rtbdemo(timeout)
     
     % now set the callback for every button, can't seem to make this work using
     % GUIDE.
-    for hh=get(h, 'Children')'
-        if ~strcmp( get(hh, 'Style'), 'pushbutton')
-            continue;
+    for hh=h.Children'
+        switch hh.Type
+            case 'uicontrol'                
+                if strcmp( hh.Style, 'pushbutton')
+                    set(hh, 'Callback', @demo_pushbutton_callback);
+                end
+            case 'uipanel'
+                for hhh=hh.Children'
+                    if strcmp( hhh.Style, 'pushbutton')
+                        set(hhh, 'Callback', @demo_pushbutton_callback);
+                    end
+                    continue;
+                end
         end
-        set(hh, 'Callback', @demo_pushbutton_callback);
     end
     
     % TODO:
@@ -194,4 +213,4 @@ function demo_pushbutton_callback(hObject, eventdata, handles)
         % eventdata  reserved - to be defined in a future version of MATLAB
         % handles    structure with handles and user data (see GUIDATA)
         set(gcf, 'Userdata', get(hObject, 'String'));
-    end
+end

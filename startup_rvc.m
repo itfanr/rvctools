@@ -10,14 +10,18 @@ robotpath = fullfile(rvcpath, 'robot');
 if exist(robotpath,'dir')
     addpath(robotpath);
     tb = true;
-    startup_rtb
+    if exist('startup_rtb') == 2
+        startup_rtb
+    end
 end
 
 visionpath = fullfile(rvcpath, 'vision');
 if exist(visionpath,'dir')
     addpath(visionpath);
     tb = true;
-    startup_mvtb
+    if exist('startup_mvtb') == 2
+        startup_mvtb
+    end
 end
 
 if tb

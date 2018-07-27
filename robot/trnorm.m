@@ -18,11 +18,11 @@
 % - Used to prevent finite word length arithmetic causing transforms to 
 %   become `unnormalized'.
 %
-% See also OA2TR.
+% See also OA2TR, SO3.trnorm, SE3.trnorm.
 
 
 
-% Copyright (C) 1993-2015, by Peter I. Corke
+% Copyright (C) 1993-2017, by Peter I. Corke
 %
 % This file is part of The Robotics Toolbox for MATLAB (RTB).
 % 
@@ -41,24 +41,28 @@
 %
 % http://www.petercorke.com
 
-function r = trnorm(t)
+function TR = trnorm(T)
 
-    if ndims(t) == 3
-        nd = size(t, 3);
+    assert(ishomog(T) || isrot(T), 'RTB:trnorm:badarg', 'expecting 3x3xN or 4x4xN hom xform');
+    
+    if ndims(T) == 3
+        % recurse for transform sequence
+        nd = size(T, 3);
         r = zeros(4,4,nd);
         for i=1:nd
-            r(:,:,i) = trnorm(t(:,:,i));
+            TR(:,:,i) = trnorm(T(:,:,i));
         end
         return
     end
-
-    if all(size(t) == [4 4])
-        n = cross(t(1:3,2), t(1:3,3));  % N = O x A
-        o = cross(t(1:3,3), n);         % O = A x N
-        r = [unit(n) unit(t(1:3,2)) unit(t(1:3,3)) t(1:3,4); 0 0 0 1];
-    elseif all(size(t) == [3 3])
-            r = t;
-    else
-        error('RTB:trnorm:badarg', 'argument must be 3x3 or 4x4 hom xform');
+    
+    n = T(1:3,1); o = T(1:3,2); a = T(1:3,3);
+    n = cross(o, a);         % N = O x A
+    o = cross(a, n);         % O = A x N
+    R = [unit(n) unit(o) unit(a)];
+    
+    if ishomog(T)
+        TR = rt2tr( R, T(1:3,4) );
+    elseif isrot(T)
+        TR = R;
     end
 

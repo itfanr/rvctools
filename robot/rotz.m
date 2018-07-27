@@ -5,11 +5,12 @@
 %
 % R = ROTZ(THETA, 'deg') as above but THETA is in degrees.
 %
-% See also ROTX, ROTY, ANGVEC2R, ROT2.
+% See also ROTX, ROTY, ANGVEC2R, ROT2, SO3.Rx.
 
 
 
-% Copyright (C) 1993-2015, by Peter I. Corke
+
+% Copyright (C) 1993-2017, by Peter I. Corke
 %
 % This file is part of The Robotics Toolbox for MATLAB (RTB).
 % 
